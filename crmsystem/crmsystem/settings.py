@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'crmsystem.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'astroy',
+        'NAME': 'astroydb',
         'USER': 'postgres',
         'PASSWORD': 'Rfpfrjd10081989',
         'HOST': '127.0.0.1',
@@ -138,5 +138,4 @@ AUTH_USER_MODEL = 'users.User'
 USER_ROLE_CHOICE = [
     (1, 'Администратор'),
     (2, 'Офис-менеджер'),
-    (3, 'Грузчик')
 ]
