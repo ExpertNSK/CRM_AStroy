@@ -73,7 +73,7 @@ class User(AbstractUser):
         blank=False,
         null=False,
         choices=USER_ROLE_CHOICE,
-        default=2
+        default=3
     )
     USERNAME_FIELD = ('phone')
     REQUIRED_FIELDS = [
@@ -105,7 +105,8 @@ class User(AbstractUser):
     
     def __str__(self):
         return (
-            f'{self.last_name} {self.first_name} {self.middle_name}'
+            f'{self.last_name} {self.first_name} {self.middle_name} - '
+            f'({str(self.phone)[-4:-2]}-{str(self.phone)[-2:]})'
         )
 
 

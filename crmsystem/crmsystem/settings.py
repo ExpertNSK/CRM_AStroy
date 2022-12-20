@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'orders.apps.OrdersConfig',
     'users.apps.UsersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -138,4 +139,5 @@ AUTH_USER_MODEL = 'users.User'
 USER_ROLE_CHOICE = [
     (1, 'Администратор'),
     (2, 'Офис-менеджер'),
+    (3, 'Грузчик'),
 ]
