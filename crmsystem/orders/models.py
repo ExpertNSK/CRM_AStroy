@@ -1,8 +1,45 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
 
 from users.models import User
+
+
+class Status(models.Model):
+    status = models.CharField(
+        'Статус',
+        max_length=50,
+        unique=True,
+        blank=False,
+        null=False
+    )
+
+    class Meta:
+        ordering = ['status']
+        verbose_name = 'Статус'
+        verbose_name_plural = 'Статусы'
+    
+    def __str__(self):
+        return f'{self.status}'
+
+
+class KindOfWork(models.Model):
+    kind_of_work = models.CharField(
+        'Тип работы',
+        max_length=50,
+        unique=True,
+        blank=False,
+        null=False
+    )
+
+    class Meta:
+        ordering = ['kind_of_work']
+        verbose_name = 'Тип работ'
+        verbose_name_plural = 'Типы работ'
+    
+    def __str__(self):
+        return f'{self.kind_of_work}'
 
 
 class PayMethod(models.Model):
@@ -64,6 +101,19 @@ class Loader(models.Model):
         max_length=150,
         blank=False,
         null=False,
+    )
+    kind_of_work = models.ForeignKey(
+        KindOfWork,
+        on_delete=models.CASCADE,
+        verbose_name='Тип работ',
+        default=None,
+        blank=True,
+        null=True
+    )
+    status = models.ForeignKey(
+        Status,
+        on_delete=models.CASCADE,
+        verbose_name='Статус',
     )
     create_date = models.DateField(
         'Дата приема',
@@ -138,6 +188,22 @@ class Loader(models.Model):
         blank=True,
         null=True
     )
+    passport_address = models.TextField(
+        'Прописка',
+        max_length=200,
+        blank=True,
+        null=True
+    )
+    passport_photo_main = models.ImageField(
+        'Фото главной страницы',
+        upload_to='photo/passports/',
+        blank=True
+    )
+    passport_photo_address = models.ImageField(
+        'Фото прописки',
+        upload_to='photo/passports/',
+        blank=True
+    )
     pay_method = models.ForeignKey(
         PayMethod,
         on_delete=models.CASCADE,
@@ -186,6 +252,7 @@ class Loader(models.Model):
                 middle_name=self.middle_name,
                 email=fake_email,
                 phone=self.phone,
+                password='1234567890',
             )
         else:
             if self.phone == self.referer.phone:
@@ -193,3 +260,143 @@ class Loader(models.Model):
         if not self.whatsapp:
             self.whatsapp = self.phone
         return super(Loader, self).save()
+
+
+class Counteragent(models.Model):
+    type = models.CharField(
+        'Тип контрагента',
+        choices=settings.TYPES_COUNTERAGENTS,
+        max_length=50,
+        blank=False,
+        null=False
+    )
+    legal_name = models.CharField(
+        'Юридическое наименование',
+        max_length=200,
+        unique=True,
+        blank=False,
+        null=False
+    )
+    short_name = models.CharField(
+        'Краткое наименование',
+        max_length=200,
+        unique=True,
+        blank=False,
+        null=False
+    )
+    inn = models.IntegerField(
+        'ИНН',
+        unique=True,
+        blank=True,
+        null=True
+    )
+    kpp = models.IntegerField(
+        'КПП',
+        blank=True,
+        null=True
+    )
+    legal_address = models.TextField(
+        'Юридический адрес',
+        max_length=200,
+        blank=True,
+        null=True
+    )
+    actual_address = models.TextField(
+        'Фактический адрес',
+        max_length=200,
+        help_text='Оставьте пустым, если совпадает с юридическим.',
+        blank=True,
+        null=True
+    )
+    payment_account = models.IntegerField(
+        'Рассчетный счёт',
+        blank=True,
+        null=True
+    )
+    correspondent_account = models.IntegerField(
+        'Корреспондентский счёт',
+        blank=True,
+        null=True
+    )
+    bik = models.IntegerField(
+        'БИК',
+        blank=True,
+        null=True
+    )
+    bank = models.CharField(
+        'Наименование банка',
+        max_length=50,
+        blank=True,
+        null=True
+    )
+    kind_of_work = models.ForeignKey(
+        KindOfWork,
+        on_delete=models.CASCADE,
+        verbose_name='Виды работ',
+        blank=False,
+        null=False
+    )
+    contacts = models.ManyToManyField(
+        'Contactperson',
+        through='ContactCounterAgent',
+        verbose_name='Контактное лицо'
+    )
+
+    class Meta:
+        ordering = ['short_name']
+        verbose_name = 'Контрагент'
+        verbose_name_plural = 'Контрагенты'
+    
+    def __str__(self):
+        return f'{self.short_name}'
+    
+
+class Contactperson(models.Model):
+    fio = models.CharField(
+        'Ф.И.О',
+        max_length=150,
+        blank=False,
+        null=False
+    )
+    post = models.CharField(
+        'Должность',
+        max_length=50,
+        blank=True,
+        null=True
+    )
+    email = models.EmailField(
+        'Электронная почта',
+        max_length=250,
+        blank=True,
+        null=True
+    )
+    phone = PhoneNumberField(
+        'Номер телефона',
+        unique=True,
+        blank=False,
+        null=False
+    )
+
+    class Meta:
+        verbose_name = 'Контактное лицо'
+        verbose_name_plural = 'Контактные лица'
+    
+    def __str__(self):
+        return f'{self.post} - {self.fio} тел: {self.phone}'
+
+
+class ContactCounterAgent(models.Model):
+    counteragent = models.ForeignKey(
+        Counteragent,
+        on_delete=models.CASCADE,
+        verbose_name='Контрагент'
+    )
+    contact_person = models.ForeignKey(
+        Contactperson,
+        on_delete=models.CASCADE,
+        verbose_name='Контактное лицо'
+    )
+
+    class Meta:
+        verbose_name = 'Контактное лицо'
+        verbose_name_plural = 'Контактные лица'
