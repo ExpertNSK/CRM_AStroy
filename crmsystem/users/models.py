@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 from phonenumber_field.modelfields import PhoneNumberField
-from django.contrib.auth.hashers import make_password
 
 from crmsystem.settings import USER_ROLE_CHOICE
 
@@ -13,10 +12,9 @@ class UserManager(BaseUserManager):
 
     def _create_user(self, email, password, **extra_fields):
         if not email:
-            raise ValueError('Адрес электронной почты asdasdasd обязателен!')
+            raise ValueError('Адрес электронной почты обязателен!')
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
-        role = extra_fields.get('role')
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -110,18 +108,3 @@ class User(AbstractUser):
             f'{self.last_name} {self.first_name} {self.middle_name} - '
             f'({str(self.phone)[-4:-2]}-{str(self.phone)[-2:]})'
         )
-    
-    def save(self, *args, **kwargs):
-        user = super(User, self)
-        user.set_password(self.password)
-        user.save(*args, **kwargs)
-        return super(User, self)
-
-
-class Course(models.Model):
-    slug = models.SlugField(max_length=100)
-    name = models.CharField(max_length=100)
-    tutor = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE
-    )
